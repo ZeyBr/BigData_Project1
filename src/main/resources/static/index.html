@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SWE307 — Grup 2</title>
+<style>body{font-family:system-ui;margin:40px auto;padding:0 20px;max-width:1050px;background:#faf8f4;color:#35261b}img{width:100%;background:white;border:1px solid #d9cec1}p{line-height:1.6}</style>
+<h1>SWE307 — Grup 2</h1>
+<p>İkinci sütundaki veriler, saniyede bir değer eklenerek çizilir. 100 değerden sonra grafik tamamlanır.</p>
+<p id="status" role="status">Grafik hazırlanıyor…</p>
+<img id="plot" alt="İkinci sütunun koyu kahverengi çizgi grafiği" hidden>
+<script>
+    let previousUrl;
+
+    async function refresh() {
+        try {
+            const response = await fetch('/api/plot', {
+                cache: 'no-store'
+            });
+
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            const blob = await response.blob();
+            //binary large object
+            const url = URL.createObjectURL(blob);
+
+            const plot = document.getElementById('plot');
+            const status = document.getElementById('status');
+
+            plot.src = url;
+            plot.hidden = false;
+
+            //release the prev url, avoid unnecassary storage usage
+            if (previousUrl) {
+                URL.revokeObjectURL(previousUrl);
+            }
+
+            previousUrl = url;
+            status.textContent = 'Grafik güncel.';
+
+        } catch (error) {
+            document.getElementById('status').textContent =
+                'Hata: ' + error.message;
+
+
+            //SANİYE BEKLEME
+        } finally {
+            setTimeout(refresh, 1000);
+        }
+    }
+
+    refresh();
+</script>
+</html>
